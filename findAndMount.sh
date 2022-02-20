@@ -34,6 +34,15 @@ getUnmountedEphemeralDrives() {
     
     echo "unmounted ephemeral drives:" $RAW
     
+    for i in $RAW
+    do
+        ID=$(nvme id-ctrl -v $i | grep "0000:" | awk '{print $NF}' | sed 's/\.//g' | sed 's/^"//' | sed 's/"$//' | sed 's/:.*//' | sed 's/\/dev\///')
+	STRIP=$(echo $i | awk -F '/' '{print $3}')
+	SIZE=$(lsblk | grep $STRIP | awk 'NR==1{print $4}')
+	MOUNTPOINT="/mnt/$ID" 
+	echo "RONINLINK | EPHEMERAL $ID $SIZE BLANK $MOUNTPOINT"
+    done
+    
  }
 
 
@@ -76,6 +85,15 @@ getUnmountedEmptyEBSDrives() {
 	fi
     done
     echo "unmounted RAW EBS drives:" $RAW
+    
+    for i in $RAW
+    do
+        ID=$(nvme id-ctrl -v $i | grep "0000:" | awk '{print $NF}' | sed 's/\.//g' | sed 's/^"//' | sed 's/"$//' | sed 's/:.*//' | sed 's/\/dev\///')
+	STRIP=$(echo $i | awk -F '/' '{print $3}')
+	SIZE=$(lsblk | grep $STRIP | awk 'NR==1{print $4}')
+	MOUNTPOINT="/mnt/$ID" # Need to figure out a way to keep mount point bound to a drive ID so it doesn't get messed up - this might be better than using "volume1" etc?
+	echo "RONINLINK | EBS /dev/$ID $SIZE BLANK $MOUNTPOINT"
+    done
     
 }
 
@@ -122,7 +140,23 @@ getUnmountedEBSDrivesAndPartitionsWithData() {
 	then
 	    DRIVES="${DRIVES} $i"
 	else
-	    HASPART="${HASPART} $i"
+	    HASPART="${HASPART} /dev/$i"
+	fi
+    done
+    
+    # For each drive with an unmounted partition, check to see if the partition is the full size of the drive
+    FULLPART=""
+    RESIZED=""
+    for i in $HASPART
+    do
+        STRIP=$(echo $i | awk -F '/' '{print $3}')
+	DISKSIZE=$(lsblk | grep $STRIP | grep "disk" | awk '{print $4}')
+	PARTITIONSIZE=$(lsblk | grep $STRIP | grep -v "disk" | awk 'NR==1{print $4}')
+	if [[ $DISKSIZE == $PARTITIONSIZE ]]
+	then
+	    FULLPART="${FULLPART} $i"
+	else
+	    RESIZED="${RESIZED} $i"
 	fi
     done
 
@@ -135,14 +169,34 @@ getUnmountedEBSDrivesAndPartitionsWithData() {
 	has_filesystem /dev/${d}
 	if [ ${?} -eq 0 ]; # has a file system
 	then
-	    DRIVESWITHDATA="$DRIVESWITHDATA ${d}"
+	    DRIVESWITHDATA="$DRIVESWITHDATA /dev/${d}"
 	fi
     done
 	     
     # Everything here is unmounted 
     # But should have file system data.
     echo unmounted drives that have data: ${DRIVESWITHDATA}
-    echo unmounted partitions that probably have data: ${HASPART}
+    echo unmounted drives with partitions that probably have data: ${HASPART}
+    echo unmounted drives with partitions that are the full size of the drive: ${FULLPART}
+    echo unmounted drives that have been resized and require a filesystem extension: ${RESIZED}
+    
+    for i in $FULLPART
+    do
+        ID=$(nvme id-ctrl -v $i | grep "0000:" | awk '{print $NF}' | sed 's/\.//g' | sed 's/^"//' | sed 's/"$//' | sed 's/:.*//' | sed 's/\/dev\///')
+	STRIP=$(echo $i | awk -F '/' '{print $3}')
+	SIZE=$(lsblk | grep $STRIP | awk 'NR==1{print $4}')
+	MOUNTPOINT="/mnt/$ID" # Need to figure out a way to keep mount point bound to a drive ID so it doesn't get messed up - this might be better than using "volume1" etc?
+	echo "RONINLINK | EBS /dev/$ID $SIZE DATA $MOUNTPOINT"
+    done
+    
+    for i in $RESIZED
+    do
+        ID=$(nvme id-ctrl -v $i | grep "0000:" | awk '{print $NF}' | sed 's/\.//g' | sed 's/^"//' | sed 's/"$//' | sed 's/:.*//' | sed 's/\/dev\///')
+	STRIP=$(echo $i | awk -F '/' '{print $3}')
+	SIZE=$(lsblk | grep $STRIP | awk 'NR==1{print $4}')
+	MOUNTPOINT="/mnt/$ID" # Need to figure out a way to keep mount point bound to a drive ID so it doesn't get messed up - this might be better than using "volume1" etc?
+	echo "RONINLINK | RESZIED /dev/$ID $SIZE DATA $MOUNTPOINT"
+    done
     
 }
 
@@ -288,7 +342,7 @@ partitionAndMountDrive() {
 
 
 
-getUnmountedEBSDrives
+getUnmountedEmptyEBSDrives
 getUnmountedEphemeralDrives
 getUnmountedEBSDrivesAndPartitionsWithData
 
