@@ -40,7 +40,7 @@ getUnmountedEphemeralDrives() {
 	STRIP=$(echo $i | awk -F '/' '{print $3}')
 	SIZE=$(lsblk | grep $STRIP | awk 'NR==1{print $4}')
 	MOUNTPOINT="/mnt/$ID" 
-	echo "RONINLINK | EPHEMERAL $ID $SIZE BLANK $MOUNTPOINT"
+	echo "RONINLINK | EPHEMERAL | $ID | $SIZE | BLANK | $MOUNTPOINT"
     done
     
  }
@@ -92,7 +92,7 @@ getUnmountedEmptyEBSDrives() {
 	STRIP=$(echo $i | awk -F '/' '{print $3}')
 	SIZE=$(lsblk | grep $STRIP | awk 'NR==1{print $4}')
 	MOUNTPOINT="/mnt/$ID" # Need to figure out a way to keep mount point bound to a drive ID so it doesn't get messed up - this might be better than using "volume1" etc?
-	echo "RONINLINK | EBS /dev/$ID $SIZE BLANK $MOUNTPOINT"
+	echo "RONINLINK | EBS | /dev/$ID | $SIZE | BLANK | $MOUNTPOINT"
     done
     
 }
@@ -186,7 +186,7 @@ getUnmountedEBSDrivesAndPartitionsWithData() {
 	STRIP=$(echo $i | awk -F '/' '{print $3}')
 	SIZE=$(lsblk | grep $STRIP | awk 'NR==1{print $4}')
 	MOUNTPOINT="/mnt/$ID" # Need to figure out a way to keep mount point bound to a drive ID so it doesn't get messed up - this might be better than using "volume1" etc?
-	echo "RONINLINK | EBS /dev/$ID $SIZE DATA $MOUNTPOINT"
+	echo "RONINLINK | EBS | /dev/$ID | $SIZE | DATA | $MOUNTPOINT"
     done
     
     for i in $RESIZED
@@ -195,7 +195,7 @@ getUnmountedEBSDrivesAndPartitionsWithData() {
 	STRIP=$(echo $i | awk -F '/' '{print $3}')
 	SIZE=$(lsblk | grep $STRIP | awk 'NR==1{print $4}')
 	MOUNTPOINT="/mnt/$ID" # Need to figure out a way to keep mount point bound to a drive ID so it doesn't get messed up - this might be better than using "volume1" etc?
-	echo "RONINLINK | RESZIED /dev/$ID $SIZE DATA $MOUNTPOINT"
+	echo "RONINLINK | RESZIED | /dev/$ID | $SIZE | DATA | $MOUNTPOINT"
     done
     
 }
