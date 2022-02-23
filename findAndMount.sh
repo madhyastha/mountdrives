@@ -25,7 +25,7 @@ getUnmountedEphemeralDrives() {
     RAW=""
     for i in $DISKS
     do
-	found=`grep "$i" <<< ${PARTS}`
+	found=$(grep "$i" <<< ${PARTS})
 	if [ -z $found ]
 	then
 	    RAW="$RAW /dev/$i"
@@ -67,7 +67,7 @@ getUnmountedEmptyEBSDrives() {
     NOPART=""
     for i in $DISKS
     do
-	found=`grep "$i" <<< ${PARTS}`
+	found=$(grep "$i" <<< ${PARTS})
 	if [ -z $found ]
 	then
 	    NOPART="$NOPART /dev/$i"
@@ -119,7 +119,7 @@ getUnmountedEBSDrivesAndPartitionsWithData() {
     NOPART=""
     for i in $DISKS
     do
-	found=`grep "$i" <<< ${MOUNTEDPARTS}`
+	found=$(grep "$i" <<< ${MOUNTEDPARTS})
 	if [ -z $found ]
 	then
 	    NOPART="$NOPART $i"
@@ -135,7 +135,7 @@ getUnmountedEBSDrivesAndPartitionsWithData() {
     DRIVES=""
     for i in $NOPART
     do
-	found=`grep "$i" <<< ${UNMOUNTEDPARTS}`
+	found=$(grep "$i" <<< ${UNMOUNTEDPARTS})
 	if [ -z $found ]
 	then
 	    DRIVES="${DRIVES} $i"
