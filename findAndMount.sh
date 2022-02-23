@@ -1,8 +1,8 @@
 #!/bin/bash -x
 
 # install the nvme tools
-#apt-get update >& /dev/null
-#apt install nvme-cli -y >& /dev/null
+#sudo apt-get update >& /dev/null
+#sudo apt install nvme-cli -y >& /dev/null
 
 # Get any unmounted and unpartitioned ephemeral drives. We assume these would
 # have been ignored upon launch - so we can offer to partition them, put file systems
@@ -12,7 +12,7 @@ getUnmountedEphemeralDrives() {
     ALLDISKS=$(lsblk --noheadings --raw -o NAME,TYPE|grep nvme|awk '$2=="disk" {print $1}')
     for disk in $ALLDISKS
     do
-	nvme id-ctrl -v /dev/${disk}|grep '^mn '| grep "Instance">&/dev/null
+	sudo nvme id-ctrl -v /dev/${disk}|grep '^mn '| grep "Instance">&/dev/null
             if [ $? -eq 0 ]; 
 	    then
 		DISKS="$DISKS ${disk}"
@@ -36,7 +36,7 @@ getUnmountedEphemeralDrives() {
     
     for i in $RAW
     do
-        ID=$(nvme id-ctrl -v $i | grep "0000:" | awk '{print $NF}' | sed 's/\.//g' | sed 's/^"//' | sed 's/"$//' | sed 's/:.*//' | sed 's/\/dev\///')
+        ID=$(sudo nvme id-ctrl -v $i | grep "0000:" | awk '{print $NF}' | sed 's/\.//g' | sed 's/^"//' | sed 's/"$//' | sed 's/:.*//' | sed 's/\/dev\///')
 	STRIP=$(echo $i | awk -F '/' '{print $3}')
 	SIZE=$(lsblk | grep $STRIP | awk 'NR==1{print $4}')
 	MOUNTPOINT="/mnt/$ID" 
@@ -53,7 +53,7 @@ getUnmountedEmptyEBSDrives() {
 ')
     for disk in $ALLDISKS
     do
-	nvme id-ctrl -v /dev/${disk}|grep '^mn '| grep "Amazon Elastic Block Store">&/dev/null
+	sudo nvme id-ctrl -v /dev/${disk}|grep '^mn '| grep "Amazon Elastic Block Store">&/dev/null
             if [ $? -eq 0 ]; 
 	    then
 		DISKS="$DISKS ${disk}"
@@ -88,7 +88,7 @@ getUnmountedEmptyEBSDrives() {
     
     for i in $RAW
     do
-        ID=$(nvme id-ctrl -v $i | grep "0000:" | awk '{print $NF}' | sed 's/\.//g' | sed 's/^"//' | sed 's/"$//' | sed 's/:.*//' | sed 's/\/dev\///')
+        ID=$(sudo nvme id-ctrl -v $i | grep "0000:" | awk '{print $NF}' | sed 's/\.//g' | sed 's/^"//' | sed 's/"$//' | sed 's/:.*//' | sed 's/\/dev\///')
 	STRIP=$(echo $i | awk -F '/' '{print $3}')
 	SIZE=$(lsblk | grep $STRIP | awk 'NR==1{print $4}')
 	MOUNTPOINT="/mnt/$ID" # Need to figure out a way to keep mount point bound to a drive ID so it doesn't get messed up - this might be better than using "volume1" etc?
@@ -105,7 +105,7 @@ getUnmountedEBSDrivesAndPartitionsWithData() {
     # limit to EBS only
     for disk in $UNMOUNTEDDISKS
     do
-	nvme id-ctrl -v /dev/${disk}|grep '^mn '| grep "Amazon Elastic Block Store">&/dev/null
+	sudo nvme id-ctrl -v /dev/${disk}|grep '^mn '| grep "Amazon Elastic Block Store">&/dev/null
             if [ $? -eq 0 ]; 
 	    then
 		DISKS="$DISKS ${disk}"
@@ -182,7 +182,7 @@ getUnmountedEBSDrivesAndPartitionsWithData() {
     
     for i in $FULLPART
     do
-        ID=$(nvme id-ctrl -v $i | grep "0000:" | awk '{print $NF}' | sed 's/\.//g' | sed 's/^"//' | sed 's/"$//' | sed 's/:.*//' | sed 's/\/dev\///')
+        ID=$(sudo nvme id-ctrl -v $i | grep "0000:" | awk '{print $NF}' | sed 's/\.//g' | sed 's/^"//' | sed 's/"$//' | sed 's/:.*//' | sed 's/\/dev\///')
 	STRIP=$(echo $i | awk -F '/' '{print $3}')
 	SIZE=$(lsblk | grep $STRIP | awk 'NR==1{print $4}')
 	MOUNTPOINT="/mnt/$ID" # Need to figure out a way to keep mount point bound to a drive ID so it doesn't get messed up - this might be better than using "volume1" etc?
@@ -191,7 +191,7 @@ getUnmountedEBSDrivesAndPartitionsWithData() {
     
     for i in $RESIZED
     do
-        ID=$(nvme id-ctrl -v $i | grep "0000:" | awk '{print $NF}' | sed 's/\.//g' | sed 's/^"//' | sed 's/"$//' | sed 's/:.*//' | sed 's/\/dev\///')
+        ID=$(sudo nvme id-ctrl -v $i | grep "0000:" | awk '{print $NF}' | sed 's/\.//g' | sed 's/^"//' | sed 's/"$//' | sed 's/:.*//' | sed 's/\/dev\///')
 	STRIP=$(echo $i | awk -F '/' '{print $3}')
 	SIZE=$(lsblk | grep $STRIP | awk 'NR==1{print $4}')
 	MOUNTPOINT="/mnt/$ID" # Need to figure out a way to keep mount point bound to a drive ID so it doesn't get messed up - this might be better than using "volume1" etc?
