@@ -24,6 +24,19 @@ mapnvmetosd() {
     echo $sd
 }
 
+checkForSuccess() {
+    # takes mountpoint and disk/partition (/dev/nvmexxxx) as argument and checks to make sure disk is mounted
+    mountpoint=$1
+    DISK=$2
+    mounted=$(df ${mountpoint}|grep ${DISK}|awk '{print $1}')
+    if [ "X${mounted}" = "X${DISK}" ]
+    then
+	echo "RONIN LINK SUCCESS| Disk successfully mounted"
+    else
+	echo "RONIN LINK ERROR| Something went wrong..."
+    fi
+}
+
 
 if [ "$#" -ne 2 ];
 then
@@ -45,7 +58,13 @@ read UUID FS_TYPE < <(blkid -u filesystem ${device}|awk -F "[= ]" '{print $3" "$
 grep ${UUID} /etc/fstab  > /dev/null 2>&1
 if [ ${?} -eq 1 ]; # entry is not in fstab, create entry if needed
 then
-    [ -d "${mountpoint}" ] || sudo mkdir "${mountpoint}"
+    if [ -d "${mountpoint}" ]
+    then
+	echo "RONIN LINK ERROR| Mount point already exists"
+    else
+	sudo mkdir "${mountpoint}"
+    fi
+    
     if [ $addtofstab -eq 1 ]
     then
 	add_to_fstab ${UUID} ${mountpoint}

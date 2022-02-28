@@ -229,7 +229,7 @@ is_partitioned() {
 
 has_filesystem() {
     DEVICE=${1}
-    OUTPUT=$(file -s ${DEVICE})
+    OUTPUT=$(sudo file -s ${DEVICE})
     #Check for boot volume just in case root drive is passed here
     egrep "filesystem|boot" <<< "${OUTPUT}" > /dev/null 2>&1
     return ${?} # 0 if filesystem, 1 if not
